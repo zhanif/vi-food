@@ -4,12 +4,16 @@ import { AppService } from './app.service';
 import { FoodsModule } from './foods/foods.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Food } from './foods/entities/food.entity';
+import { AuthController } from './auth/auth.controller';
+import { UsersModule } from './users/users.module';
+import { AuthService } from './auth/auth.service';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    FoodsModule,
-    ConfigModule.forRoot(), // Mengaktifkan penggunaan variabel .env
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -24,8 +28,11 @@ import { Food } from './foods/entities/food.entity';
         synchronize: configService.get<boolean>('DATABASE_ENABLE_SYNC'),
       }),
     }),
+    UsersModule,
+    AuthModule,
+    FoodsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, AuthController],
+  providers: [AppService, AuthService],
 })
 export class AppModule {}
