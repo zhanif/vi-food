@@ -18,7 +18,7 @@ export class User {
     @Column()
     name: string;
 
-    @Column({ length: 30 })
+    @Column({ length: 30, unique: true })
     phone: string;
 
     @Column({ type: 'text' })

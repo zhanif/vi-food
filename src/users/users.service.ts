@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,12 +16,10 @@ export class UsersService {
   ) {}
 
   async register(registerUserDto: RegisterUserDto) {
-    const role = await this.roleRepository.findOneBy({ name: 'customer' });
-    if (!role) throw new InternalServerErrorException;
-
+    const role = await this.getRole('customer');
     const user = this.userRepository.create({
       username: registerUserDto.username,
-      password: bcrypt.hashSync(registerUserDto.password, 10),
+      password: this.generatePassword(registerUserDto.password),
       name: registerUserDto.name,
       phone: registerUserDto.phone,
       address: registerUserDto.address,
@@ -30,24 +28,42 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserDto) {
+    const role = await this.getRole('customer');
+    const user = this.userRepository.create({
+      username: createUserDto.username,
+      password: this.generatePassword(createUserDto.password),
+      name: createUserDto.name,
+      phone: createUserDto.phone,
+      address: createUserDto.address,
+      role,
+    })
+    return this.userRepository.save(user);
   }
 
   findAll() {
-    return `This action returns all users`;
+    return this.userRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException("User not found");
+
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const existingUser = await this.findOne(id);
+    const user = this.userRepository.merge(existingUser, updateUserDto);
+    user.password = this.generatePassword(user.password)
+    return await this.userRepository.save(user);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    const existingFood = await this.findOne(id);
+    const result = await this.userRepository.softDelete(existingFood.id);
+    if (result.affected == 0) throw new BadRequestException("Unable to delete user");
+    return existingFood;    
   }
 
   async findByUsername(username: string) {
@@ -55,5 +71,16 @@ export class UsersService {
     if (!user) throw new NotFoundException("Unable to find the user");
 
     return user;
+  }
+
+  private async getRole(name: string) {
+    const role = await this.roleRepository.findOneBy({ name });
+    if (!role) throw new InternalServerErrorException;
+
+    return role;
+  }
+
+  private generatePassword(password: string) {
+    return bcrypt.hashSync(password, 10);
   }
 }
