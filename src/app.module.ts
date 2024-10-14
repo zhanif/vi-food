@@ -8,7 +8,8 @@ import { AuthController } from './auth/auth.controller';
 import { UsersModule } from './users/users.module';
 import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
-import { IsUniqueConstraint } from './common/validators/unique.validator';
+import { OrdersModule } from './orders/orders.module';
+import { CartsModule } from './carts/carts.module';
 
 @Module({
   imports: [
@@ -31,7 +32,9 @@ import { IsUniqueConstraint } from './common/validators/unique.validator';
     }),
     UsersModule,
     AuthModule,
-    FoodsModule
+    FoodsModule,
+    CartsModule,
+    OrdersModule
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService]

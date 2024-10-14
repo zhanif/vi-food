@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { IsUniqueConstraint } from 'src/common/validators/unique.validator';
+import { Cart } from 'src/carts/entities/cart.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role])],
+  imports: [TypeOrmModule.forFeature([User, Role, Cart])],
   controllers: [UsersController],
   providers: [UsersService, IsUniqueConstraint],
   exports: [UsersService]

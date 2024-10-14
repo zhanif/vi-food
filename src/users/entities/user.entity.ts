@@ -6,11 +6,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
+import { Cart } from 'src/carts/entities/cart.entity';
 
 @Entity('users')
 export class User {
@@ -46,6 +48,10 @@ export class User {
   @ManyToOne(() => Role)
   @JoinColumn({ name: 'role_id' })
   role: Role;
+
+  @OneToOne(() => Cart, (cart) => cart.user)
+  @Exclude({ toPlainOnly: true })
+  cart: Cart;
 
   validatePassword(password: string): boolean {
     return bcrypt.compareSync(password, this.password);
