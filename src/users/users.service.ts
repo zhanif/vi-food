@@ -50,8 +50,8 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     const existingUserByPhone = await this.findByPhone(updateUserDto.phone);
-    if (existingUserByPhone?.id != id) throw new ConflictException("Phone number is already registered");
-
+    if (existingUserByPhone?.id !== +id) throw new ConflictException("Phone number is already registered");
+    
     const existingUser = await this.findOne(id);
     const user = this.userRepository.merge(existingUser, updateUserDto);
     user.password = this.generatePassword(user.password);
