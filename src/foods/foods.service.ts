@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 export class FoodsService {
   constructor(
     @InjectRepository(Food)
-    private foodRepository: Repository<Food>,
+    private foodRepository: Repository<Food>
   ) {}
 
   create(createFoodDto: CreateFoodDto) {
@@ -37,7 +37,7 @@ export class FoodsService {
   async remove(id: number) {
     const existingFood = await this.findOne(id);
     const result = await this.foodRepository.softDelete(existingFood.id);
-    if (result.affected == 0) throw new BadRequestException("Unable to delete the specified food");
+    if (result.affected == 0) throw new BadRequestException('Unable to delete the specified food');
     return existingFood;
   }
 }

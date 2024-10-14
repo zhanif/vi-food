@@ -8,6 +8,7 @@ import { AuthController } from './auth/auth.controller';
 import { UsersModule } from './users/users.module';
 import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
+import { IsUniqueConstraint } from './common/validators/unique.validator';
 
 @Module({
   imports: [
@@ -25,14 +26,14 @@ import { AuthModule } from './auth/auth.module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         autoLoadEntities: true,
-        synchronize: configService.get<boolean>('DATABASE_ENABLE_SYNC'),
-      }),
+        synchronize: configService.get<boolean>('DATABASE_ENABLE_SYNC')
+      })
     }),
     UsersModule,
     AuthModule,
-    FoodsModule,
+    FoodsModule
   ],
   controllers: [AppController, AuthController],
-  providers: [AppService, AuthService],
+  providers: [AppService, AuthService]
 })
 export class AppModule {}

@@ -1,4 +1,10 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,22 +29,13 @@ export class UsersService {
       name: registerUserDto.name,
       phone: registerUserDto.phone,
       address: registerUserDto.address,
-      role,
-    })
+      role
+    });
     return this.userRepository.save(user);
   }
 
   async create(createUserDto: CreateUserDto) {
-    const role = await this.getRole('customer');
-    const user = this.userRepository.create({
-      username: createUserDto.username,
-      password: this.generatePassword(createUserDto.password),
-      name: createUserDto.name,
-      phone: createUserDto.phone,
-      address: createUserDto.address,
-      role,
-    })
-    return this.userRepository.save(user);
+    return this.register(createUserDto);
   }
 
   findAll() {
@@ -47,36 +44,45 @@ export class UsersService {
 
   async findOne(id: number) {
     const user = await this.userRepository.findOneBy({ id });
-    if (!user) throw new NotFoundException("User not found");
-
+    if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    const existingUserByPhone = await this.findByPhone(updateUserDto.phone);
+    if (existingUserByPhone?.id != id) throw new ConflictException("Phone number is already registered");
+
     const existingUser = await this.findOne(id);
     const user = this.userRepository.merge(existingUser, updateUserDto);
-    user.password = this.generatePassword(user.password)
+    user.password = this.generatePassword(user.password);
     return await this.userRepository.save(user);
   }
 
   async remove(id: number) {
     const existingFood = await this.findOne(id);
     const result = await this.userRepository.softDelete(existingFood.id);
-    if (result.affected == 0) throw new BadRequestException("Unable to delete user");
-    return existingFood;    
+    if (result.affected == 0) throw new BadRequestException('Unable to delete user');
+    return existingFood;
   }
 
   async findByUsername(username: string) {
-    const user = await this.userRepository.findOne({ where: { username }, relations: ['role'] })
-    if (!user) throw new NotFoundException("Unable to find the user");
+    return await this.userRepository.createQueryBuilder('user')
+      .withDeleted()
+      .where('user.username = :username', { username })
+      .leftJoinAndSelect('user.role', 'role')
+      .getOne();
+  }
 
-    return user;
+  async findByPhone(phone: string) {
+    return await this.userRepository.createQueryBuilder('user')
+      .withDeleted()
+      .where('user.phone = :phone', { phone })
+      .getOne()
   }
 
   private async getRole(name: string) {
     const role = await this.roleRepository.findOneBy({ name });
-    if (!role) throw new InternalServerErrorException;
-
+    if (!role) throw new InternalServerErrorException();
     return role;
   }
 

@@ -8,11 +8,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      secretOrKey: configService.get<string>('JWT_SECRET')
     });
   }
 
   async validate(payload: any) {
-    return { id: payload.id, username: payload.username, role_id: payload.role_id }
+    return {
+      id: payload.id,
+      username: payload.username,
+      role: payload.role
+    };
   }
 }
